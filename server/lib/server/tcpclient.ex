@@ -82,20 +82,6 @@ defmodule Server.Client do
     end
   end
 
-  defp read_line(socket) do
-    case :gen_tcp.recv(socket, 0) do
-      {:ok, data} ->
-        {:ok, data}
-
-      {:error, msg} ->
-        if msg != :closed do
-          Logger.error "Error with read_line() :: #{msg}"
-        end
-
-        :error
-    end
-  end
-
   defp read_key() do
     case File.read("/etc/test/key.txt") do
       {:ok, contents} ->
