@@ -3,6 +3,8 @@
 #include <sodium.h>
 #include <errno.h>
 #include <unistd.h>
+#include <getopt.h>
+#include <inttypes.h>
 
 #include <net/if.h>
 #include <linux/if_ether.h>
@@ -13,7 +15,38 @@
 
 #include <sys/socket.h>
 
-#define PORT 3020
+struct config
+{
+    char *IP;
+    uint16_t port;
+} cfg;
+
+const struct option longopts[] =
+{
+    {"dst", required_argument, NULL, 'd'},
+    {"port", required_argument, NULL, 'p'}
+};
+
+void ParseCmdLine(int argc, char *argv[])
+{
+    int c = 0;
+
+    while ((c = getopt_long(argc, argv, "d:p:", longopts, NULL)) != -1)
+    {
+        switch (c)
+        {
+            case 'd':
+                cfg.IP = optarg;
+                
+                break;
+
+            case 'p':
+                cfg.port = atoi(optarg);
+
+                break;
+        }
+    }
+}
 
 int GetKey(unsigned char *key)
 {
@@ -55,8 +88,8 @@ int SetupTCP()
     struct sockaddr_in din;
 
     din.sin_family = AF_INET;
-    din.sin_port = htons(PORT);
-    din.sin_addr.s_addr = inet_addr("0.0.0.0");
+    din.sin_port = htons(cfg.port);
+    din.sin_addr.s_addr = inet_addr(cfg.IP);
     memset(&din.sin_zero, 0, sizeof(din.sin_zero));
 
     if (connect(sock, (struct sockaddr *)&din, sizeof(din)) < 0)
@@ -131,7 +164,7 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
     return 0;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     if (sodium_init() == -1)
     {
@@ -139,6 +172,13 @@ int main()
 
         exit(1);
     }
+
+    // Set defaults.
+    cfg.IP = "0.0.0.0";
+    cfg.port = 3020;
+
+    // Parse command line.
+    ParseCmdLine(argc, argv);
 
     unsigned char key[crypto_aead_chacha20poly1305_IETF_KEYBYTES];
 
@@ -176,6 +216,8 @@ int main()
         {
             break;
         }
+
+        //strcpy(buffer, "l");
 
         // Encrypt and send message.
         if (EncryptMessage(sockfd, buffer, key, &counter) != 0)
