@@ -50,7 +50,7 @@ void ParseCmdLine(int argc, char *argv[])
 
 int GetKey(unsigned char *key)
 {
-    FILE *fp = fopen("/etc/test/key.txt", "r");
+    FILE *fp = fopen("/etc/test/key.txt", "rb");
 
     if (fp == NULL)
     {
@@ -59,8 +59,19 @@ int GetKey(unsigned char *key)
         return 1;
     }
 
+    // Set file's position to end of file so we can get the position (AKA size).
+    fseek(fp, 0L, SEEK_END);
+
+    // Get size of key file.
+    size_t sz;
+
+    sz = ftell(fp);
+
+    // Reset position to beginning.
+    fseek(fp, 0L, SEEK_SET);
+
     // Read key.
-    fscanf(fp, "%s", key);
+    fread(key, sz, 1, fp);
     
     return 0;
 }
