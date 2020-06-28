@@ -63,6 +63,7 @@ defmodule Server.Client do
             Logger.info "CText (#{byte_size(ctext)}) => #{Base.encode16(ctext)}"
             Logger.info "Tag (#{byte_size(tag)}) => #{Base.encode16(tag)}"
             Logger.info "Data (#{byte_size(data)}) => #{Base.encode16(data)}"
+            Logger.info "Packet ##{counter}"
 
           _ ->
             Logger.info "Decrypted text => #{decrypted}"
