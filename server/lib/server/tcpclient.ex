@@ -4,14 +4,13 @@ defmodule Server.Client do
 
   @initial_state %{state: :ident, socket: nil, counter: 1}
 
-  def start_link(%{socket: socket, counter: counter} = stuff, opts \\ []) do
-    GenServer.start_link(__MODULE__, %{socket: socket, counter: counter}, opts)
+  def start_link(socket, opts \\ []) do
+    GenServer.start_link(__MODULE__, socket, opts)
   end
 
-  def init(opts) do
+  def init(socket) do
     stuff = @initial_state
-    stuff = %{stuff | socket: opts.socket}
-    stuff = %{stuff | counter: opts.counter}
+    stuff = %{stuff | socket: socket}
 
     {:ok, stuff}
   end

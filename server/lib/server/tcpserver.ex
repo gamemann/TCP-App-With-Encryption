@@ -17,7 +17,7 @@ defmodule Server.Server do
   defp loop(listen_socket) do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
-    {:ok, pid} = DynamicSupervisor.start_child(Server.ClientSupervisor, {Server.Client, %{socket: socket, counter: 1}})
+    {:ok, pid} = DynamicSupervisor.start_child(Server.ClientSupervisor, {Server.Client, socket})
     :gen_tcp.controlling_process(socket, pid)
 
     loop(listen_socket)
