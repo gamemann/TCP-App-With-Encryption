@@ -122,8 +122,7 @@ int SetupTCP()
 
 int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t *counter)
 {
-    unsigned char salt[crypto_pwhash_SALTBYTES];
-    unsigned char hash[crypto_box_SEEDBYTES];
+    unsigned char hash[crypto_generichash_BYTES];
     unsigned char nonce[crypto_aead_chacha20poly1305_IETF_NPUBBYTES];
     unsigned char ctext[crypto_aead_chacha20poly1305_IETF_ABYTES + 2048];
     unsigned char scounter[sizeof(uint64_t)];
@@ -132,14 +131,12 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
     // Size is sizeof(ctext) + sizeof(uint64_t).
     unsigned char toSend[crypto_aead_chacha20poly1305_IETF_ABYTES + 2048 + sizeof(uint64_t)];
 
-    // Generate salt.
-    randombytes_buf(salt, sizeof(salt));
-
     // Copy counter integer to string.
-    snprintf(scounter, sizeof(scounter), "%lu", *counter);
+    //snprintf(scounter, sizeof(scounter), "%lu", *counter);
+    memcpy(scounter, counter, sizeof(uint64_t));
 
     // Generate hash to use as nonce (first 12 bytes).
-    if (crypto_pwhash(hash, sizeof(hash), scounter, sizeof(scounter), salt, crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE, crypto_pwhash_ALG_DEFAULT) != 0)
+    if (crypto_hash_sha256(hash, scounter, sizeof(scounter)) != 0)
     {
         fprintf(stderr, "Error hashing nonce.\n");
 
@@ -147,9 +144,8 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
     }
 
     // Copy first 12 bytes of hash to nonce.
-    //memcpy(nonce, hash, 12);
-    memset(nonce, 0, 12);
-
+    memcpy(nonce, hash, 12);
+    
     crypto_aead_chacha20poly1305_ietf_encrypt(ctext, &ctextlen, buff, strlen(buff), NULL, 0, NULL, nonce, key);
 
     // Check to ensure we can decrypt the message before sending.
@@ -163,7 +159,7 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
         return 1;
     }
 
-    fprintf(stdout, "Decrypted => %s\n", decrypted);
+    //fprintf(stdout, "Decrypted => %s\n", decrypted);
 
     // Copy counter to beginning of toSend (8 bytes).
     char *sendCounter = toSend;

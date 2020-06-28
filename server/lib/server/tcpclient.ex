@@ -47,20 +47,10 @@ defmodule Server.Client do
         # Get the tag.
         tag = :binary.part(data, {byte_size(data), -16})
 
-        counterfrom = :binary.decode_unsigned(:binary.part(data, {0, 8}), :little)
-
-        Logger.info "Got counter => #{counterfrom}"
-
-        # Create seed.
-        #:crypto.rand_seed(to_string(counter))
-
-        # Create a hash for the nonce of 12 bytes.
-        #hash = :crypto.strong_rand_bytes(12)
+        hash = :crypto.hash(:sha256, :binary.part(data, {0, 8}))
 
         # Create the nonce/IV.
-        #<<iv::binary-size(12)>> = :binary.part(hash, {0, 12})
-        #iv = "123456789012"
-        <<iv::binary>> = <<0::96>>
+        <<iv::binary-size(12)>> = :binary.part(hash, {0, 12})
 
         # AAD
         aad = <<>>
