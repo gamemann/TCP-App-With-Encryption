@@ -10,9 +10,9 @@ I wrote this application to practice Elixir and encryption. I plan to use a simi
 The client (`/client/client.c`) is written in C and uses a library named [Libsodium](https://libsodium.gitbook.io/doc/) for encryption and hashing.
 
 ### Command Line Options
-* `--dst, -d` => The IP of the server (default is `0.0.0.0`).
+* `--dst, -d` => The IP of the server (default is `"0.0.0.0"`).
 * `--port, -p` => The port of the server (default is `3020`).
-* `--key, -k` => The path to the shared key file (default is `/etc/tcpserver/key.txt`).
+* `--key, -k` => The path to the shared key file (default is `"/etc/tcpserver/key.txt"`).
 
 ## The Server
 The server (`/server/*`) is written in Elixir and uses the ErLang Crypto [module](https://erlang.org/doc/man/crypto.html) for decrypting data and hashing. The server utilizes GenServer.
@@ -20,9 +20,9 @@ The server (`/server/*`) is written in Elixir and uses the ErLang Crypto [module
 ### Configuration
 You may configure additional settings in `/server/config/config.exs`. Here is a brief description of each:
 
-* `ip` => The IP for the server to listen on (default is `0.0.0.0`).
+* `ip` => The IP for the server to listen on (default is `{0, 0, 0, 0}`).
 * `port` => The port for the server to listen on (default is `3020`).
-* `keypath` => The path to the shared key file (default is `/etc/tcpserver/key.txt`).
+* `keypath` => The path to the shared key file (default is `"/etc/tcpserver/key.txt"`).
 
 **Note** - The `ip` setting must be a tuple containing four elements and each element represents an octet. An example is `{127, 0, 0, 1}`.
 
@@ -30,7 +30,7 @@ You may configure additional settings in `/server/config/config.exs`. Here is a 
 You may generate a key with the `/client/genkey.c` program.
 
 ### Command Line Options
-* `--path, -p` => The path to save the file to (default is `/etc/tcpserver/key.txt`).
+* `--path, -p` => The path to save the file to (default is `"/etc/tcpserver/key.txt"`).
 
 ## Requirements
 ### Client
@@ -43,6 +43,8 @@ The server only requires ErLang and Elixir to be installed on the system. You sh
 cd server/
 mix deps.get
 ```
+
+**Note** - I installed ErLang, Elixir, and the server on a vanilla Ubuntu 20.04 VM and it ran the first time without any issues.
 
 ## Compiling
 ### Client and GenKey
