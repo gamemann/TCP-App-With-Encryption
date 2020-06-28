@@ -3,13 +3,16 @@ defmodule Server.Server do
   use Task
 
   def start_link(_opts) do
-    Task.start_link(__MODULE__, :listen, [])
+    ip = Application.get_env(:server, :ip, {0, 0, 0, 0})
+    port = Application.get_env(:server, :port, 3020)
+
+    Task.start_link(__MODULE__, :listen, [ip, port])
   end
 
-  def listen() do
-    {:ok, listen_socket} = :gen_tcp.listen(3020, [:binary, active: :once, reuseaddr: true])
+  def listen(ip, port) do
+    {:ok, listen_socket} = :gen_tcp.listen(port, [:binary, active: :once, reuseaddr: true, ip: ip])
 
-    Logger.info "Listening on port 3020."
+    Logger.info "Listening on port #{port}."
 
     loop(listen_socket)
   end
