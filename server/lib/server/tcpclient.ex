@@ -16,14 +16,15 @@ defmodule Server.Client do
     {:ok, stuff}
   end
 
-  def handle_info({:tcp, socket, data}, state) do
+  def handle_info({:tcp, socket, data}, %{counter: counter} = state) do
     IO.inspect state, label: "State"
-    serve(socket, 0, data)
+
+    serve(socket, counter, data)
     :inet.setopts(socket, [active: :once])
 
     #IO.inspect data, label: "Incoming packet"
 
-    {:noreply, state}
+    {:noreply, Map.put(state, :counter, counter+1)}
   end
 
   def handle_info({:tcp_closed, socket}, state) do
