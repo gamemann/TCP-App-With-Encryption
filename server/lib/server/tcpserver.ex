@@ -12,7 +12,9 @@ defmodule Server.Server do
   def listen(ip, port) do
     {:ok, listen_socket} = :gen_tcp.listen(port, [:binary, active: :once, reuseaddr: true, ip: ip])
 
-    Logger.info "Listening on port #{port}."
+    {octet1, octet2, octet3, octet4} = ip
+
+    Logger.info "Listening on port #{octet1}.#{octet2}.#{octet3}.#{octet4}:#{port}."
 
     loop(listen_socket)
   end
