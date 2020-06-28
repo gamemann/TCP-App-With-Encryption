@@ -22,13 +22,13 @@ defmodule Server.Client do
     {:noreply, Map.put(state, :counter, counter+1)}
   end
 
-  def handle_info({:tcp_closed, socket}, state) do
+  def handle_info({:tcp_closed, _socket}, _state) do
     Logger.info "Connection closed by user."
 
     Process.exit(self(), :normal)
   end
 
-  def handle_info({:tcp_error, _socket, reason}, state) do
+  def handle_info({:tcp_error, _socket, reason}, _state) do
     Logger.info "Connection closed due to an error :: #{reason}"
 
     Process.exit(self(), :normal)
@@ -42,10 +42,10 @@ defmodule Server.Client do
     case read_key() do
       {:ok, key} ->
         # Get cipher text.
-        <<ctext::binary>> = :binary.part(data, {0, byte_size(data) - 16})
+        ctext = :binary.part(data, {0, byte_size(data) - 16})
 
         # Get the tag.
-        <<tag::binary-size(16)>> = :binary.part(data, {byte_size(data), -16})
+        tag = :binary.part(data, {byte_size(data), -16})
 
         # Create seed.
         #:crypto.rand_seed(to_string(counter))
@@ -56,7 +56,7 @@ defmodule Server.Client do
         # Create the nonce/IV.
         #<<iv::binary-size(12)>> = :binary.part(hash, {0, 12})
         #iv = "123456789012"
-        <<iv::binary-size(12)>> = <<0::96>>
+        <<iv::binary>> = <<0::96>>
 
         # AAD
         aad = <<>>
