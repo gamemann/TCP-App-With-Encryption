@@ -122,6 +122,9 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
     unsigned char scounter[sizeof(uint64_t)];
     unsigned long long ctextlen;
 
+    // Size is sizeof(ctext) + sizeof(uint64_t).
+    unsigned char toSend[crypto_aead_chacha20poly1305_IETF_ABYTES + 2048 + sizeof(uint64_t)];
+
     // Generate salt.
     randombytes_buf(salt, sizeof(salt));
 
@@ -137,8 +140,8 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
     }
 
     // Copy first 12 bytes of hash to nonce.
+    //memcpy(nonce, hash, 12);
     memset(nonce, 0, 12);
-    //strcpy(nonce, "12345678901");
 
     crypto_aead_chacha20poly1305_ietf_encrypt(ctext, &ctextlen, buff, strlen(buff), NULL, 0, NULL, nonce, key);
 
@@ -153,19 +156,18 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
         return 1;
     }
 
-    FILE *fp = fopen("/etc/test/data.txt", "w");
-
-    if (fp != NULL)
-    {
-        fputs(ctext, fp);
-
-        fclose(fp);
-    }
-
     fprintf(stdout, "Decrypted => %s\n", decrypted);
 
+    // Copy counter to beginning of toSend (8 bytes).
+    char *sendCounter = toSend;
+    memcpy(sendCounter, counter, sizeof(uint64_t));
+
+    // Copy cipher text to rest of string.
+    char *ctextPtr = toSend + sizeof(uint64_t);
+    memcpy(ctextPtr, ctext, ctextlen);
+
     // Send message.
-    if (write(sockfd, ctext, ctextlen) < 1)
+    if (write(sockfd, toSend, ctextlen + sizeof(uint64_t)) < 1)
     {
         fprintf(stderr, "Error sending packet on socket :: %s\n", strerror(errno));
 

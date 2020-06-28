@@ -42,10 +42,14 @@ defmodule Server.Client do
     case read_key() do
       {:ok, key} ->
         # Get cipher text.
-        ctext = :binary.part(data, {0, byte_size(data) - 16})
+        ctext = :binary.part(data, {8, byte_size(data) - 24})
 
         # Get the tag.
         tag = :binary.part(data, {byte_size(data), -16})
+
+        counterfrom = :binary.decode_unsigned(:binary.part(data, {0, 8}), :little)
+
+        Logger.info "Got counter => #{counterfrom}"
 
         # Create seed.
         #:crypto.rand_seed(to_string(counter))
