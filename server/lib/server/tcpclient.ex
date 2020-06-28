@@ -34,7 +34,7 @@ defmodule Server.Client do
     Process.exit(self(), :normal)
   end
 
-  defp serve(socket, counter, data) do
+  defp serve(_socket, counter, data) do
     case read_key() do
       {:ok, key} ->
         # Get cipher text.
