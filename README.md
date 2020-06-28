@@ -78,4 +78,4 @@ iex -S mix
 
 ## Credits
 * [Christian Deacon](https://www.linkedin.com/in/christian-deacon-902042186/) - Created application.
-* [Dreae](https://github.com/Dreae/) - Helped me understand the `Chacha20_poly1305` cipher and encryption. He has been a great help!
+* [Dreae](https://github.com/Dreae/) - Helped me understand the `Chacha20_poly1305` cipher and encryption. He has been a HUGE help!
