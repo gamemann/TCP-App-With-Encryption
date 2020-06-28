@@ -87,7 +87,9 @@ defmodule Server.Client do
   end
 
   defp read_key() do
-    case File.read("/etc/test/key.txt") do
+    keypath = Application.get_env(:server, :keypath, "/etc/tcpserver/key.txt")
+
+    case File.read(keypath) do
       {:ok, contents} ->
         {:ok, contents}
 

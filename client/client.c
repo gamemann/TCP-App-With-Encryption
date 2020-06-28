@@ -18,13 +18,15 @@
 struct config
 {
     char *IP;
+    char *key;
     uint16_t port;
 } cfg;
 
 const struct option longopts[] =
 {
     {"dst", required_argument, NULL, 'd'},
-    {"port", required_argument, NULL, 'p'}
+    {"port", required_argument, NULL, 'p'},
+    {"key", required_argument, NULL, 'k'}
 };
 
 void ParseCmdLine(int argc, char *argv[])
@@ -44,17 +46,22 @@ void ParseCmdLine(int argc, char *argv[])
                 cfg.port = atoi(optarg);
 
                 break;
+
+            case 'k':
+                cfg.key = optarg;
+
+                break;
         }
     }
 }
 
 int GetKey(unsigned char *key)
 {
-    FILE *fp = fopen("/etc/test/key.txt", "rb");
+    FILE *fp = fopen(cfg.key, "rb");
 
     if (fp == NULL)
     {
-        fprintf(stderr, "Failed to open /etc/test/key.txt: %s\n", strerror(errno));
+        fprintf(stderr, "Failed to open %s: %s\n", cfg.key, strerror(errno));
 
         return 1;
     }
@@ -189,6 +196,7 @@ int main(int argc, char *argv[])
     // Set defaults.
     cfg.IP = "0.0.0.0";
     cfg.port = 3020;
+    cfg.key = "/etc/tcpserver/key.txt";
 
     // Parse command line.
     ParseCmdLine(argc, argv);
