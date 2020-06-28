@@ -96,15 +96,6 @@ defmodule Server.Client do
     end
   end
 
-  defp write_line(line, socket) do
-    case :gen_tcp.send(socket, line) do
-      {:error, msg} ->
-        Logger.info "Error sending packet back :: #{msg}"
-
-      _ -> :ok
-    end
-  end
-
   defp read_key() do
     case File.read("/etc/test/key.txt") do
       {:ok, contents} ->
@@ -114,9 +105,5 @@ defmodule Server.Client do
         Logger.error "Error reading key file :: #{msg}"
         :err
     end
-  end
-
-  def handle_cast({:event, event_id}, state) do
-    {:noreply, state}
   end
 end
