@@ -31,8 +31,11 @@ int main(int argc, char *argv[])
     ParseCmdLine(argc, argv);
 
     unsigned char key[crypto_aead_chacha20poly1305_IETF_KEYBYTES];
+
+    // Generate key (32 bytes more than likely).
     crypto_aead_chacha20poly1305_ietf_keygen(key);
 
+    // Open key path in binary.
     FILE *fp = fopen(path, "wb");
 
     if (fp != NULL)

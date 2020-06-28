@@ -35,10 +35,6 @@ defmodule Server.Client do
   end
 
   defp serve(socket, counter, data) do
-    if String.trim(to_string(data)) == String.trim("quit") do
-      :gen_tcp.close(socket)
-    end
-
     case read_key() do
       {:ok, key} ->
         # Get cipher text.
@@ -47,9 +43,10 @@ defmodule Server.Client do
         # Get the tag.
         tag = :binary.part(data, {byte_size(data), -16})
 
+        # Get hash for nonce/IV.
         hash = :crypto.hash(:sha256, :binary.part(data, {0, 8}))
 
-        # Create the nonce/IV.
+        # Create the nonce/IV and copy first 12 bytes for SHA256 hash.
         <<iv::binary-size(12)>> = :binary.part(hash, {0, 12})
 
         # AAD
@@ -77,8 +74,10 @@ defmodule Server.Client do
   end
 
   defp read_key() do
+    # Get keypath setting.
     keypath = Application.get_env(:server, :keypath, "/etc/tcpserver/key.txt")
 
+    # Read key file and return results.
     case File.read(keypath) do
       {:ok, contents} ->
         {:ok, contents}

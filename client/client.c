@@ -57,6 +57,7 @@ void ParseCmdLine(int argc, char *argv[])
 
 int GetKey(unsigned char *key)
 {
+    // Open key file.
     FILE *fp = fopen(cfg.key, "rb");
 
     if (fp == NULL)
@@ -86,8 +87,10 @@ int GetKey(unsigned char *key)
 // Returns socket.
 int SetupTCP()
 {
+    // Create socket.
     int sock = socket(AF_INET, SOCK_STREAM, 0);
 
+    // Check to ensure socket is valid.
     if (sock < 1)
     {
         return sock;
@@ -110,6 +113,7 @@ int SetupTCP()
     din.sin_addr.s_addr = inet_addr(cfg.IP);
     memset(&din.sin_zero, 0, sizeof(din.sin_zero));
 
+    // Connect to server.
     if (connect(sock, (struct sockaddr *)&din, sizeof(din)) < 0)
     {
         fprintf(stderr, "Error connecting to server :: %s\n", strerror(errno));
@@ -132,7 +136,6 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
     unsigned char toSend[crypto_aead_chacha20poly1305_IETF_ABYTES + 2048 + sizeof(uint64_t)];
 
     // Copy counter integer to string.
-    //snprintf(scounter, sizeof(scounter), "%lu", *counter);
     memcpy(scounter, counter, sizeof(uint64_t));
 
     // Generate hash to use as nonce (first 12 bytes).
@@ -146,12 +149,14 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
     // Copy first 12 bytes of hash to nonce.
     memcpy(nonce, hash, 12);
     
+    // Encrypt the message and store in ctext.
     crypto_aead_chacha20poly1305_ietf_encrypt(ctext, &ctextlen, buff, strlen(buff), NULL, 0, NULL, nonce, key);
 
     // Check to ensure we can decrypt the message before sending.
     unsigned char decrypted[2048];
     unsigned long long dlen;
 
+    // Attempt to decrypt message using the existing cipher text, nonce/IV, and key before sending to server.
     if (crypto_aead_chacha20poly1305_ietf_decrypt(decrypted, &dlen, NULL, ctext, ctextlen, NULL, 0, nonce, key) != 0)
     {
         fprintf(stderr, "Encrypted message is forged!\n");
@@ -182,6 +187,7 @@ int EncryptMessage(int sockfd, unsigned char *buff, unsigned char *key, uint64_t
 
 int main(int argc, char *argv[])
 {
+    // Initialize Libsodium.
     if (sodium_init() == -1)
     {
         fprintf(stderr, "Failed to initialize Sodium.\n");
@@ -210,6 +216,7 @@ int main(int argc, char *argv[])
     // Setup TCP connection.
     int sockfd = SetupTCP();
 
+    // Check to ensure socket is valid.
     if (sockfd < 1)
     {
         fprintf(stderr, "Error getting socket.\n");
@@ -234,8 +241,6 @@ int main(int argc, char *argv[])
             break;
         }
 
-        //strcpy(buffer, "l");
-
         // Encrypt and send message.
         if (EncryptMessage(sockfd, buffer, key, &counter) != 0)
         {
@@ -248,7 +253,9 @@ int main(int argc, char *argv[])
         counter++;
     }
 
+    // Close socket.
     close(sockfd);
 
+    // Exit program successfully.
     exit(0);
 }
